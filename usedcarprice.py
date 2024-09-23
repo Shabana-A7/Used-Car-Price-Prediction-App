@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 # Load the trained model
-model = joblib.load('LinearRegressionModel1.pkl')
+model = joblib.load('LinearRegressionModel.pkl')
 
 # Read the cleaned dataset
 cars = pd.read_csv(r'C:/Users/Administrator/Documents/Python Scripts/streamlit1/Price Predict 4UsedCars/Datacleaned_cars.csv')
