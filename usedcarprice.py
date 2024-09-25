@@ -5,7 +5,10 @@ import pickle as pkl
 import numpy as np
 import joblib
 # Reading the Dataset
-cars = pd.read_csv(r"C:\Users\Administrator\Documents\Python Scripts\streamlit1\Price Predict 4UsedCars\Datacleaned_cars.csv")
+#cars = pd.read_csv(r"C:\Users\Administrator\Documents\Python Scripts\streamlit1\Price Predict 4UsedCars\Datacleaned_cars.csv")
+
+# Load the dataset using a relative path
+cars = pd.read_csv("Datacleaned_cars.csv")
 
 # Fetching all the unique companies, car model names, years, and fuel types
 company = cars['Type'].unique()
