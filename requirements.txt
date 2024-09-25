@@ -1,0 +1,5 @@
+streamlit
+pickle
+joblib
+numpy
+pandas
