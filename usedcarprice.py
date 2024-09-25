@@ -1,63 +1,100 @@
+# Importing required libraries
 import streamlit as st
-import joblib
 import pandas as pd
+import pickle as pkl
 import numpy as np
+import joblib
+# Reading the Dataset
+cars = pd.read_csv(r"C:\Users\Administrator\Documents\Python Scripts\streamlit1\Price Predict 4UsedCars\Datacleaned_cars.csv")
 
-# Load the trained model
-model = joblib.load('LinearRegressionModel.pkl')
+# Fetching all the unique companies, car model names, years, and fuel types
+company = cars['Type'].unique()
+name = cars['Name'].unique()
+year = sorted(cars['Year'].unique(), reverse=True)
+fuel_type = cars['Fuel_Type'].unique()
 
-# Read the cleaned dataset
-cars = pd.read_csv(r'C:/Users/Administrator/Documents/Python Scripts/streamlit1/Price Predict 4UsedCars/Datacleaned_cars.csv')
+st.title("USED CAR PRICE PREDICTOR")
+st.subheader("Enter the details of car: ")
 
-# Define the app layout
-st.title("Used Car Price Prediction App")
+# Taking user inputs
+col1, col2 = st.columns(2)
+with col1:
+    selected_company = st.selectbox('Select Company:', company)
+    
+with col2:
+    selected_company_models = []
+    for i in list(name):
+        if i.startswith(selected_company):
+            selected_company_models.append(i)
+            
+    selected_model = st.selectbox('Select Model Name:', selected_company_models)
+    
+col3, col4 = st.columns(2)
+with col3:
+    selected_year = st.selectbox('Select Year:', year)
+    
+with col4:
+    selected_fuel_type = st.selectbox('Select Fuel Type:', fuel_type)
 
-# Create input fields for user input
-st.sidebar.header('User Input Parameters')
+selected_km_driven = st.number_input("Enter Kilometers Driven: ")
 
-def user_input_features():
-    name = st.sidebar.text_input('Name', 'Maruti Wagon')
-    location = st.sidebar.selectbox('Location', cars['Location'].unique())
-    year = st.sidebar.number_input('Year', 2000, 2024, 2022)
-    kilometers_driven = st.sidebar.number_input('Kilometers Driven', 0, 200000, 50000)
-    fuel_type = st.sidebar.selectbox('Fuel Type', cars['Fuel_Type'].unique())
-    transmission = st.sidebar.selectbox('Transmission', cars['Transmission'].unique())
-    owner_type = st.sidebar.selectbox('Owner Type', cars['Owner_Type'].unique())
-    mileage = st.sidebar.number_input('Mileage', 0.0, 100.0, 20.0)
-    engine = st.sidebar.number_input('Engine', 0.0, 5000.0, 1000.0)
-    power = st.sidebar.number_input('Power', 0.0, 500.0, 100.0)
-    seats = st.sidebar.number_input('Seats', 2, 7, 5)
-    type_ = st.sidebar.selectbox('Type', cars['Type'].unique())
+#no need below
 
-    data = pd.DataFrame({
-        'Name': [name],
-        'Location': [location],
-        'Year': [year],
-        'Kilometers_Driven': [kilometers_driven],
-        'Fuel_Type': [fuel_type],
-        'Transmission': [transmission],
-        'Owner_Type': [owner_type],
-        'Mileage': [mileage],
-        'Engine': [engine],
-        'Power': [power],
-        'Seats': [seats],
-        'Type': [type_]
-    })
-    return data
+selected_transmission = st.sidebar.selectbox('Transmission', ['Manual', 'Automatic'])
+selected_owner_type = st.sidebar.selectbox('Owner Type', ['First', 'Second', 'Third', 'Fourth & Above'])
+selected_mileage = st.sidebar.number_input('Mileage (in km/l)', 0.0, 100.0, 0.0)
+selected_engine = st.sidebar.number_input('Engine (in cc)', 0.0, 5000.0, 0.0)
+selected_power = st.sidebar.number_input('Power (in bhp)', 0.0, 500.0, 0.0)
+selected_seats = st.sidebar.number_input('Seats', 2, 7, 5)
+selected_type = st.sidebar.selectbox('Type', ['Maruti', 'Hyundai', 'Honda','Toyota', 'Audi', 'Mahindra', 'Chevrolet'])
 
-# Get user input
-user_input = user_input_features()
+btn = st.button('Submit Info')
+#model = joblib.load('LinearRegressionModel2.pkl')
+model = joblib.load('LinearRegressionModel2.pkl')
+if btn:
+    # Loading trained machine learning model via pickle
+    with open('LinearRegressionModel2.pkl', 'rb') as file:
+        model = pkl.load(file)
+    
+    # Predicting the result
+    prediction = model.predict(pd.DataFrame([[selected_model, selected_company, selected_year, selected_km_driven, selected_fuel_type, 
+                                           selected_transmission, selected_owner_type, selected_mileage, 
+                                           selected_engine, selected_power, selected_seats, selected_type]], columns=['Name', 'Location', 'Year', 'Kilometers_Driven', 'Fuel_Type', 'Transmission', 'Owner_Type', 'Mileage', 'Engine', 'Power', 'Seats', 'Type']))
+    
+    # Showing Results
+    st.subheader(round(prediction[0], 2))
 
-# Make prediction
-prediction = model.predict(user_input)
+# Input data matching the expected column structure
 
-# Display results
-st.subheader('Prediction')
-st.write(f'The predicted price of the used car is: ₹{prediction[0]:,.2f}Lac')
+input_data = np.array([
+    'Maruti Wagon',  # Name
+    'Mumbai',        # Location
+    2010,            # Year
+    72000,           # Kilometers_Driven
+    'CNG',           # Fuel Type
+    'Manual',        # Transmission
+    'First',         # Owner Type
+    26.6,            # Mileage
+    998,             # Engine
+    58.16,           # Power
+    5,               # Seats
+    'Maruti'         # Brand Type
+]).reshape(1, 12)
 
-# Optionally display the raw data
-st.subheader('User Input Data')
-st.write(user_input)
+# Create DataFrame ensuring column names match
+expected_columns = ['Name', 'Location', 'Year', 'Kilometers_Driven', 'Fuel_Type', 'Transmission', 'Owner_Type', 'Mileage', 'Engine', 'Power', 'Seats', 'Type']
+input_df = pd.DataFrame(columns=expected_columns, data=input_data)
+
+# Ensure that numeric columns are of the correct type
+input_df['Year'] = input_df['Year'].astype(int)
+input_df['Mileage'] = input_df['Mileage'].astype(float)
+input_df['Engine'] = input_df['Engine'].astype(float)
+input_df['Kilometers_Driven'] = input_df['Kilometers_Driven'].astype(int)
+input_df['Power'] = input_df['Power'].astype(float)
+input_df['Seats'] = input_df['Seats'].astype(int)
+
+# Now predict
 
 
-
+predicted_price = model.predict(input_df)
+print(predicted_price)
